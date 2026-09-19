@@ -1,0 +1,6 @@
+{
+  "name": "دليل أرقام المنيا",
+  "description": "منصة دليل أرقام وخدمات محلية لمحافظة ومركز المنيا - كل الأرقام في مكان واحد",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

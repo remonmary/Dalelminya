@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261038970381",
+    "project_id": "dalel-elminya",
+    "storage_bucket": "dalel-elminya.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261038970381:android:79d72ec9159a857cd7a744",
+        "android_client_info": {
+          "package_name": "com.aistudio.nazletobeid.dirapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_axich1zvP7ymn_Xg8XxxEcBapjM77vY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

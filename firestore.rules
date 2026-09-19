@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.role == 'ADMIN' ||
+        request.auth.token.role == 'SUPER_ADMIN' ||
+        request.auth.token.email in ['admin@dalel-elminya.com', 'admin@minya.com', 'remonmary550@gmail.com', 'admin@nazletobeid.com'] ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Rules for "numbers" collection (دليل أرقام المنيا)
+    match /numbers/{numberId} {
+      // Public / normal users can read approved & active numbers.
+      // Admin can read all (pending, approved, rejected, suspended).
+      // Owner can read their own submissions.
+      allow read: if (resource.data.status == 'approved' && resource.data.isActive == true)
+                  || isAdmin()
+                  || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
+
+      // Normal users can submit a new number strictly with status == 'pending', isActive == false, isVerified == false.
+      // Admins can create numbers directly with any status.
+      allow create: if request.resource.data.name is string 
+                    && request.resource.data.phone is string
+                    && (
+                      isAdmin() ||
+                      (request.resource.data.status == 'pending' 
+                       && request.resource.data.isActive == false 
+                       && request.resource.data.isVerified == false)
+                    );
+
+      // Normal users can ONLY increment metric counters (viewsCount, callCount, whatsappCount, shareCount)
+      // and cannot tamper with status, isActive, isVerified, name, phone, etc.
+      // Admin has full update capability.
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewsCount', 'callCount', 'whatsappCount', 'shareCount'])
+      );
+
+      // Deletion is strictly restricted to Admins.
+      allow delete: if isAdmin();
+    }
+
+    // Secure Admins Registry:
+    match /admins/{adminUid} {
+      allow read, write: if isAdmin();
+    }
+
+    // Categories: Public read, Admin write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Banners: Public read, Admin write
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Notifications: Public read, Admin write
+    match /notifications/{notificationId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Featured / Pinned Numbers: Public read, Admin write
+    match /featured_numbers/{featuredId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews: Public can read approved reviews, users can submit, Admin approves/deletes
+    match /reviews/{reviewId} {
+      allow read: if resource.data.isApproved == true || isAdmin();
+      allow create: if request.resource.data.userName is string;
+      allow update, delete: if isAdmin();
+    }
+
+    // Reports: Only Admin reads, users can submit
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.reason is string;
+      allow update, delete: if isAdmin();
+    }
+
+    // App Settings: Public read, Admin write
+    match /settings/{settingKey} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
